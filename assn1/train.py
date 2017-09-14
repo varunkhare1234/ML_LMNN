@@ -1,6 +1,6 @@
 import numpy as np
 import sys
-from modshogun import KNN, EuclideanDistance, LMNN, RealFeatures, MulticlassLabels, MulticlassAccuracy, StratifiedCrossValidationSplitting, CrossValidation, CrossValidationResult 
+from modshogun import LMNN, RealFeatures, MulticlassLabels, MulticlassAccuracy
 from sklearn.datasets import load_svmlight_file
 
 def main(): 
@@ -19,34 +19,24 @@ def main():
     labels = MulticlassLabels(Ytr.astype(np.float64))
     ### Do magic stuff here to learn the best metric you can ###
     # Number of target neighbours per example - tune this using validation
-    k = 2
-    knn = KNN(k,EuclideanDistance(features,features),labels)
-    splitting = StratifiedCrossValidationSplitting(labels,5)
-    evaluator = MulticlassAccuracy()
-    cross_validation = CrossValidation(knn, features, labels, splitting,
-                                       evaluator)
-    cross_validation.set_autolock(False)
-    cross_validation.set_num_runs(200)
-    result = cross_validation.evaluate()
-    result = CrossValidationResult.obtain_from_generic(result)
-    print('kNN mean accuracy in a total of %d runs is %.4f.' % (200, result.mean))
-#    # Initialize the LMNN package
-#    lmnn = LMNN(features, labels, k)
-#    init_transform = np.eye(Xtr.shape[1])
-#
-#    # Choose an appropriate timeout
-#    lmnn.set_maxiter(2)
-#    print("training started")
-#    lmnn.train(init_transform)
-#
-#    # Let LMNN do its magic and return a linear transformation
-#	# corresponding to the Mahalanobis metric it has learnt
-#    L = lmnn.get_linear_transform()
-#    M = np.matrix(np.dot(L.T, L))
+    k = 12
+    # Initialize the LMNN package
+    lmnn = LMNN(features, labels, k)
+    init_transform = np.eye(Xtr.shape[1])
+
+    # Choose an appropriate timeout
+    lmnn.set_maxiter(30000)
+    print("training started")
+    lmnn.train(init_transform)
+
+    # Let LMNN do its magic and return a linear transformation
+	# corresponding to the Mahalanobis metric it has learnt
+    L = lmnn.get_linear_transform()
+    M = np.matrix(np.dot(L.T, L))
 
     # Save the model for use in testing phase
 	# Warning: do not change this file name
-    # np.save("model.npy", M) 
+    np.save("model.npy", M) 
 
 if __name__ == '__main__':
     main()
